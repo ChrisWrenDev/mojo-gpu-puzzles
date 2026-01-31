@@ -1,0 +1,14 @@
+[workspace]
+name = "mojo-playground"
+channels = ["https://conda.modular.com/max-nightly/", "conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+mojo = "*"
+
+[tasks]
+repl = "mojo"
+run-main = "mojo run src/main.mojo"
+test = "mojo test"
+fmt = "mojo format ."
+

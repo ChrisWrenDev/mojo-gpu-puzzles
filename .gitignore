@@ -1,0 +1,11 @@
+# Pixi environment dir (usually should not be committed)
+.pixi/
+
+# Editor / OS
+.vscode/
+.DS_Store
+
+# Build / temp
+__pycache__/
+*.log
+
