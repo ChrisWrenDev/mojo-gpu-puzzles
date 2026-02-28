@@ -1,201 +1,93 @@
-# Mojo Devcontainer
+# Mojo GPU Puzzles
 
-This repo is a **Mojo Devcontainer** that can be used in **two independent ways**:
+This repository contains my solutions, experiments, and notes while working through the **Mojo GPU Puzzles**. The goal of this project is to deepen my understanding of GPU programming concepts using the **Mojo programming language** and its GPU capabilities.
 
-1. **VS Code Dev Containers** (GUI workflow)
-2. **Neovim-only** using plain Docker (no VS Code required)
+## ▚ About Mojo GPU Puzzles
 
-Both workflows use the same toolchain inside the container:
+The Mojo GPU Puzzles are a hands-on way to learn:
 
-- Ubuntu + common CLI tooling
-- Neovim
-- Pixi
-- Mojo (via Modular Pixi flow)
+- GPU execution models (threads, blocks, grids)
+- Memory hierarchy (global, shared, registers)
+- Parallel patterns (map, reduce, scan, stencil, etc.)
+- Performance optimization techniques
+- Warp-level primitives and synchronization
+- Kernel design and launch configuration
 
----
+Each puzzle focuses on implementing a small but fundamental GPU pattern correctly and efficiently.
 
-## Repo layout
+- [https://docs.modular.com/mojo](https://docs.modular.com/mojo/manual/)
+- [https://puzzles.modular.com](https://puzzles.modular.com/introduction.html)
+- [https://github.com/modular/mojo-gpu-puzzles](https://github.com/modular/mojo-gpu-puzzles)
+
+## ▚ Repository Structure
 
 ```text
 .
-├─ .devcontainer/
-│ ├─ Dockerfile
-│ └─ devcontainer.json
-├─ pixi.toml
-├─ pixi.lock
-└─ src/
-└─ main.mojo
+├── puzzles/
+│ ├── 01*\*.mojo
+│ ├── 02*\*.mojo
+│ ├── ...
+│
+├── notes/
+│ ├── puzzle_01.md
+│ ├── puzzle_02.md
+│ ├── ...
+│
+└── README.md
 ```
 
-> Notes:
->
-> - `.pixi/` is the local environment directory and should be **gitignored**
-> - `pixi.lock` should be **committed** for reproducibility
+- `puzzles/` — My Mojo implementations for each puzzle.
+- `notes/` — Explanations, performance observations, and lessons learned.
+- `README.md` — Project overview (this file).
 
----
+## ▚ Learning Goals
 
-## Requirements
+Through these puzzles, I aim to:
 
-### For the VS Code workflow
+- Understand how GPUs execute parallel workloads.
+- Develop intuition for memory coalescing and access patterns.
+- Learn to reason about occupancy and throughput.
+- Compare CPU vs GPU mental models.
+- Build a foundation for high-performance ML and scientific computing.
 
-- Docker
-- VS Code
-- VS Code extension: **Dev Containers**
+## ▚ Notes & Reflections
 
-### For the Neovim-only workflow
+Each puzzle has a corresponding markdown note in the notes/ directory where I document:
 
-- Docker
-- (Optional) Neovim on the host, if you want to edit locally instead of inside the container
+- The core idea behind the puzzle
+- My implementation approach
+- Bugs encountered
+- Optimization strategies
+- Key takeaways
 
-That’s it. You do **not** need Mojo or Pixi installed on the host.
+## ▚ Requirements
 
----
+- Latest **Mojo** toolchain with GPU support.
+- Compatible GPU ([supported GPUs](https://docs.modular.com/max/packages/#gpu-compatibility)).
 
-## Mojo commands (same in both workflows)
+## ▚ Running a Puzzle
 
-All Mojo usage goes through Pixi:
+Example:
 
-- Mojo REPL:
+```sh
+# Test solutions on GPU
+pixi run tests
+# Or a specific puzzle
+pixi run tests pXX
+# Or manually
+pixi run mojo/python solutions/pXX/pXX.{mojo,py}
 
-  ```bash
-  pixi run repl
-  ```
+# Run GPU sanitizers for debugging on NVIDIA GPUs using `compute-sanitizer`
+pixi run memcheck  <optional pXX>    # Detect memory errors
+pixi run racecheck <optional pXX>    # Detect race conditions
+pixi run synccheck <optional pXX>    # Detect synchronization errors
+pixi run initcheck <optional pXX>    # Detect uninitialized memory access
+# Or run all sanitizer tools
+pixi run sanitizers pXX
+# Or manually
+# Note: ignore the mojo runtime error collision with the sanitizer. Look for `Error SUMMARY`
+pixi run compute-sanitizer --tool {memcheck,racecheck,synccheck,initcheck} mojo solutions/pXX/pXX.mojo
 
-- Run the example:
-
-```bash
-pixi run run-main
+# Format code
+pixi run format
 ```
-
-- Tests:
-
-```bash
-pixi run test
-```
-
-```
-
-```
-
-- Format:
-
-````
-```bash
-pixi run fmt
-````
-
----
-
-## Workflow A: Neovim
-
-This workflow uses plain Docker to build and run the same container, and you work entirely from your terminal with Neovim.
-
-### Option B1 (recommended): Edit in Neovim inside the container
-
-1. Build the image
-   From the repo root:
-
-```bash
-docker build -t mojo-playground -f .devcontainer/Dockerfile .
-```
-
-2. Start a shell in the container with your repo mounted
-
-```bash
-docker run --rm -it \
-  -v "$PWD:/workspaces/mojo-playground" \
-  -w "/workspaces/mojo-playground" \
-  mojo-playground bash
-```
-
-3. Create the Pixi environment (first time only)
-   Inside the container:
-
-```bash
-pixi install
-pixi run mojo --version
-```
-
-4. Use Neovim and Mojo
-   Inside the container:
-
-```bash
-nvim .
-```
-
-Then run Mojo commands from Neovim’s terminal, or from the shell:
-
-```bash
-pixi run run-main
-pixi run repl
-```
-
-### Option B2: Edit on the host, run Mojo inside the container
-
-If you prefer to use your host Neovim (or any editor), you can keep editing locally and run Mojo in the container.
-
-1. Build the image
-
-```bash
-docker build -t mojo-playground -f .devcontainer/Dockerfile .
-```
-
-2. Run Mojo commands in a one-off container
-   From the repo root:
-
-```bash
-docker run --rm -it \
-  -v "$PWD:/workspaces/mojo-playground" \
-  -w "/workspaces/mojo-playground" \
-  mojo-playground bash -lc "pixi install && pixi run run-main"
-```
-
-Or start an interactive shell:
-
-```bash
-docker run --rm -it \
-  -v "$PWD:/workspaces/mojo-playground" \
-  -w "/workspaces/mojo-playground" \
-  mojo-playground bash
-```
-
-Then:
-
-```bash
-pixi run repl
-```
-
----
-
-### Making the Neovim-only workflow faster (optional)
-
-Pixi downloads can be sped up by persisting Pixi’s cache in a Docker volume.
-
-Create a cache volume
-
-```bash
-docker volume create mojo-playground-pixi-cache
-```
-
-## Workflow B: VS Code Dev Containers
-
-1. Clone the repo:
-
-```bash
-git clone <repo-url>
-cd <repo>
-```
-
-2. Open in VS Code:
-
-```bash
-code .
-```
-
-3. Choose “Reopen in Container”
-
-On first create, the devcontainer runs:
-
-- `pixi install`
-- `pixi run mojo --version`
-  Then use the integrated terminal to run commands (or VS Code Tasks if configured).
